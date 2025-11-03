@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Khoj App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- === PWA Zaroori Cheezein === -->
+    
+    <!-- 1. Theme Color (Browser UI ke liye) -->
+    <meta name="theme-color" content="#4f46e5">
+    
+    <!-- 2. Web App Manifest (Naam, Icon, etc. ke liye) -->
+    <!-- Maine manifest ko seedha yahaan daal diya hai taaki alag file na banaani pade -->
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkFJIENhbG0gS2hvam8iLAogICJzaG9ydF9uYW1lIjogIkFJIENhbG0iLAogICJkZXNjcmlwdGlvbiI6ICJBYXBrYSBBSS1wb3dlcmVkIHNlYXJjaCBhc3Npc3RhbnQiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiI2Y5ZmJmYiIsCiAgInRoZW1lX29sb3IiOiAiIzRmNDZlNSIsCiAgImljb25ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL3BsYWNlaG9sZC5jby8xOTJ4MTkyLzRmNDZlNS9mZmZmZmY/dGV4dD1BSSIsCiAgICAgICJzaXplcyI6ICIxOTJ4MTkyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvcG5nIiwKICAgICAgInB1cnBvc2UiOiAiYW55IG1hc2thYmxlIgogICAgfSwKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL3BsYWNlaG9sZC5jby81MTJ4NTEyLzRmNDZlNS9mZmZmZmY/dGV4dD1BSSIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvcG5nIiwKICAgICAgInB1cnBvc2UiOiAiYW55IG1hc2thYmxlIgogICAgfQogIF0KfQo=">
+    
+    <!-- 3. Apple Home Screen Icon (iOS ke liye) -->
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/4f46e5/ffffff?text=AI">
+    
+    <!-- === PWA END === -->
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb; /* Changed to match manifest */
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #4f46e5;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        .spinner-small {
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #ffffff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </G>
+</head>
+<body class="bg-gray-100">
+    <div class="flex flex-col min-h-screen">
+        <!-- Header -->
+        <header class="bg-indigo-600 text-white shadow-md">
+            <div class="container mx-auto max-w-2xl px-4 py-4">
+                <h1 class="text-2xl font-bold text-center">AI Khoj App 🧠</h1>
+                <p class="text-center text-indigo-200">Aapka AI-powered search assistant</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow container mx-auto max-w-2xl p-4">
+            <!-- Input Card -->
+            <div class="bg-white p-5 rounded-lg shadow-lg mb-6">
+                <label for="userQuery" class="block text-sm font-medium text-gray-700 mb-2">Aapka sawaal ya topic kya hai?</label>
+                <textarea id="userQuery" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="Yahaan type karein... jaise 'Chandrayaan 3' ya 'Ek kavita likho...'"></textarea>
+                
+                <!-- Naye Buttons ke liye Grid -->
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Purana Button: Factual Answer -->
+                    <button id="askButton" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-semibold shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200 flex items-center justify-center">
+                        <span id="buttonText">Jawaab Paayein</span>
+                        <div id="loadingSpinner" class="spinner mx-auto" style="display: none;"></div>
+                    </button>
+                    <!-- Naya Feature Button: Creative Mode -->
+                    <button id="creativeButton" class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-semibold shadow-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors duration-200 flex items-center justify-center">
+                        <span id="creativeButtonText">Kuch Naya Likho ✨</span>
+                        <div id="creativeLoadingSpinner" class="spinner mx-auto" style="display: none;"></div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Result Card -->
+            <div id="resultCard" class="bg-white p-5 rounded-lg shadow-lg" style="display: none;">
+                <h2 class="text-xl font-semibold text-gray-900 mb-3">AI ka Jawaab:</h2>
+                <div id="aiResponse" class="text-gray-700 prose max-w-none"></div>
+                
+                <!-- Sources ka section, ab yeh hide/show hoga -->
+                <div id="sourcesSection" style="display: none;">
+                    <hr class="my-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Srot (Sources):</h3>
+                    <div id="sources" class="space-y-2">
+                        <!-- Sources will be injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Naya Feature: Follow-up Questions Button -->
+            <div id="followUpContainer" class="mt-6 text-center" style="display: none;">
+                <button id="followUpButton" class="bg-gray-700 text-white py-2 px-5 rounded-lg font-semibold shadow-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200 flex items-center justify-center mx-auto">
+                    <span id="followUpButtonText">Aage Kya Poochhein? ✨</span>
+                    <div id="followUpSpinner" class="spinner-small" style="display: none; margin-left: 8px;"></div>
+                </button>
+            </div>
+
+            <!-- Naya Feature: Follow-up Questions Result Card -->
+            <div id="followUpCard" class="bg-white p-5 rounded-lg shadow-lg mt-4" style="display: none;">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Aap yeh bhi poochh sakte hain:</h3>
+                <div id="followUpResponse" class="text-gray-700"></div>
+            </div>
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mt-6" style="display: none;" role="alert">
+                <strong class="font-bold">Oops!</strong>
+                <span class="block sm:inline" id="errorText"></span>
+            </div>
+        </main>
+
+        <!-- Ad Placeholder Footer -->
+        <footer class="bg-gray-800 text-white text-center p-4 shadow-inner mt-6">
+            <p class="text-sm">Yahaan Ad Dikhayega (Ad Placeholder)</p>
+        </footer>
+    </div>
+
+    <script type="module">
+        // --- App Logic ---
+        const userQueryEl = document.getElementById('userQuery');
+        const askButton = document.getElementById('askButton');
+        const buttonText = document.getElementById('buttonText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const resultCard = document.getElementById('resultCard');
+        const aiResponseEl = document.getElementById('aiResponse');
+        const sourcesEl = document.getElementById('sources');
+        const sourcesSection = document.getElementById('sourcesSection'); // Naya element
+        const errorMessageEl = document.getElementById('errorMessage');
+        const errorTextEl = document.getElementById('errorText');
+
+        // --- Naye Feature ke Elements ---
+        const creativeButton = document.getElementById('creativeButton');
+        const creativeButtonText = document.getElementById('creativeButtonText');
+        const creativeLoadingSpinner = document.getElementById('creativeLoadingSpinner');
+        
+        const followUpContainer = document.getElementById('followUpContainer');
+        const followUpButton = document.getElementById('followUpButton');
+        const followUpButtonText = document.getElementById('followUpButtonText');
+        const followUpSpinner = document.getElementById('followUpSpinner');
+        
+        const followUpCard = document.getElementById('followUpCard');
+        const followUpResponse = document.getElementById('followUpResponse');
+
+        // --- State variables ---
+        let currentQuery = "";
+        let currentAnswer = "";
+
+        // Event Listener - Factual search
+        askButton.addEventListener('click', () => {
+            const query = userQueryEl.value;
+            if (!query) {
+                showError("Sawaal poochhne ke liye kripaya kuch type karein.");
+                return;
+            }
+            fetchAiResponse(query, 'factual');
+        });
+
+        // Event Listener - Naya Feature: Creative Mode
+        creativeButton.addEventListener('click', () => {
+            const query = userQueryEl.value;
+            if (!query) {
+                showError("Topic likhne ke liye kripaya kuch type karein.");
+                return;
+            }
+            fetchAiResponse(query, 'creative');
+        });
+
+        // Event Listener - Naya Feature: Follow-up Questions
+        followUpButton.addEventListener('click', () => {
+            fetchFollowUpQuestions();
+        });
+
+
+        // --- Updated Function: fetchAiResponse ---
+        async function fetchAiResponse(userQuery, mode) {
+            setLoading(true, mode); // 'factual' ya 'creative'
+            hideError();
+            resultCard.style.display = 'none';
+            followUpContainer.style.display = 'none'; // Naya
+            followUpCard.style.display = 'none'; // Naya
+
+            const apiKey = "" 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
+            let systemPrompt;
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: {},
+            };
+
+            // Yahaan hai mool badlaav!
+            if (mode === 'factual') {
+                systemPrompt = "Aap ek helpful Indian search assistant hain. Jawaab Hinglish (Hindi in Roman script) ya saaf Hindi mein dein. Jawaab seedha aur saaf hona chahiye. Sawaal ka seedha jawaab dein.";
+                payload.tools = [{ "google_search": {} }]; // Search sirf factual mode mein
+            } else {
+                // Creative Mode
+                systemPrompt = `Aap ek rachnaatmak (creative) AI assistant hain. User ke prompt "${userQuery}" ke aadhaar par ek kavita, kahani, code snippet, ya naye ideas generate karein. Jawaab Hinglish ya Hindi mein dein.`;
+                // 'tools' nahi add karenge
+            }
+            
+            payload.systemInstruction = { parts: [{ text: systemPrompt }] };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`API error: ${response.statusText}`);
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    const text = candidate.content.parts[0].text;
+                    
+                    // Naya: State save karein
+                    currentQuery = userQuery;
+                    currentAnswer = text;
+                    
+                    let sources = [];
+                    const groundingMetadata = candidate.groundingMetadata;
+                    if (mode === 'factual' && groundingMetadata && groundingMetadata.groundingAttributions) {
+                        sources = groundingMetadata.groundingAttributions
+                            .map(attr => ({ uri: attr.web?.uri, title: attr.web?.title }))
+                            .filter(src => src.uri && src.title);
+                    }
+                    displayResult(text, sources, mode);
+                } else {
+                    throw new Error("AI se koi jawaab nahi mila.");
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                showError(`Ek galti ho gayi: ${error.message}`);
+            } finally {
+                setLoading(false, mode);
+            }
+        }
+
+        // --- Naya Function: Follow-up Questions ---
+        async function fetchFollowUpQuestions() {
+            setLoading(true, 'followup');
+            hideError();
+            
+            const apiKey = "" 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
+            // Context ke saath naya prompt
+            const prompt = `User ne yeh sawaal pucha: "${currentQuery}".\nAapne yeh jawaab diya: "${currentAnswer}".\n\nIske aadhaar par, 3 naye sawaal (follow-up questions) sujhaayein jo user poochh sakta hai. Jawaab sirf bullet points (e.g., • Sawaal 1) mein dein, Hinglish ya Hindi mein. Koi extra text na likhein.`;
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }]
+                // Ismein search tool ki zaroorat nahi hai
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`API error: ${response.statusText}`);
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    const text = candidate.content.parts[0].text;
+                    followUpResponse.innerHTML = text.replace(/\n/g, '<br>');
+                    followUpCard.style.display = 'block';
+                } else {
+                    throw new Error("AI se koi sujhaav nahi mila.");
+                }
+            } catch (error) {
+                console.error("Follow-up error:", error);
+                showError(`Sujhaav laane mein galti hui: ${error.message}`);
+            } finally {
+                setLoading(false, 'followup');
+            }
+        }
+
+        // --- Updated Function: displayResult ---
+        function displayResult(text, sources, mode) {
+            aiResponseEl.innerHTML = text.replace(/\n/g, '<br>');
+            sourcesEl.innerHTML = '';
+            
+            if (mode === 'factual' && sources.length > 0) {
+                sources.forEach(source => {
+                    const sourceEl = document.createElement('a');
+                    sourceEl.href = source.uri;
+                    sourceEl.target = '_blank';
+                    sourceEl.rel = 'noopener noreferrer';
+                    sourceEl.className = "block text-indigo-600 hover:underline truncate";
+                    sourceEl.textContent = source.title;
+                    sourcesEl.appendChild(sourceEl);
+                });
+                sourcesSection.style.display = 'block'; // Sources dikhayein
+            } else if (mode === 'factual') {
+                sourcesEl.innerHTML = '<p class="text-gray-500">Koi srot nahi mila.</p>';
+                sourcesSection.style.display = 'block'; // "Koi srot nahi" dikhayein
+            } else {
+                sourcesSection.style.display = 'none'; // Creative mode mein sources chhupayein
+            }
+            
+            resultCard.style.display = 'block';
+            followUpContainer.style.display = 'block'; // Naya: Follow-up button dikhayein
+            followUpCard.style.display = 'none'; // Purane follow-up results chhupayein
+        }
+
+        // --- Updated Function: setLoading ---
+        function setLoading(isLoading, buttonType) {
+            if (buttonType === 'factual') {
+                if (isLoading) {
+                    buttonText.style.display = 'none';
+                    loadingSpinner.style.display = 'block';
+                    askButton.disabled = true;
+                    creativeButton.disabled = true; // Doosre button ko bhi disable karein
+                } else {
+                    buttonText.style.display = 'block';
+                    loadingSpinner.style.display = 'none';
+                    askButton.disabled = false;
+                    creativeButton.disabled = false;
+                }
+            } else if (buttonType === 'creative') {
+                if (isLoading) {
+                    creativeButtonText.style.display = 'none';
+                    creativeLoadingSpinner.style.display = 'block';
+                    askButton.disabled = true;
+                    creativeButton.disabled = true;
+                } else {
+                    creativeButtonText.style.display = 'block';
+                    creativeLoadingSpinner.style.display = 'none';
+                    askButton.disabled = false;
+                    creativeButton.disabled = false;
+                }
+            } else if (buttonType === 'followup') {
+                if (isLoading) {
+                    followUpButtonText.style.display = 'none';
+                    followUpSpinner.style.display = 'inline-block';
+                    followUpButton.disabled = true;
+                } else {
+                    followUpButtonText.style.display = 'block';
+                    followUpSpinner.style.display = 'none';
+                    followUpButton.disabled = false;
+                }
+            }
+        }
+
+        function showError(message) {
+            errorTextEl.textContent = message;
+            errorMessageEl.style.display = 'block';
+        }
+        function hideError() {
+            errorMessageEl.style.display = 'none';
+        }
+
+        // --- PWA Service Worker Registration ---
+        // Yeh code check karega ki browser service worker ko support karta hai ya nahi
+        // aur agar karta hai, to use register karega.
+        
+        if ('serviceWorker' in navigator) {
+            // Hum service worker ko seedha JavaScript code se register kar rahe hain
+            // taaki alag 'sw.js' file na banaani pade.
+            
+            const swContent = `
+                const CACHE_NAME = 'ai-khoj-app-v1';
+                // Jin files ko offline cache karna hai
+                const urlsToCache = [
+                    '/', // Yeh 'index.html' ko represent karta hai
+                    'https://cdn.tailwindcss.com',
+                    'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
+                ];
+
+                // install event: cache ko set up karta hai
+                self.addEventListener('install', event => {
+                    event.waitUntil(
+                        caches.open(CACHE_NAME)
+                            .then(cache => {
+                                console.log('Cache khul gaya');
+                                return cache.addAll(urlsToCache);
+                            })
+                    );
+                });
+
+                // fetch event: network se ya cache se response deta hai
+                self.addEventListener('fetch', event => {
+                    event.respondWith(
+                        caches.match(event.request)
+                            .then(response => {
+                                // Agar cache mein response hai, to woh do
+                                if (response) {
+                                    return response;
+                                }
+                                // Varna network se fetch karo
+                                return fetch(event.request);
+                            }
+                        )
+                    );
+                });
+            `;
+            
+            // Service worker ko register karo
+            try {
+                const blob = new Blob([swContent], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register(swUrl)
+                        .then(registration => {
+                            console.log('ServiceWorker register ho gaya, scope:', registration.scope);
+                        })
+                        .catch(error => {
+                            console.log('ServiceWorker registration fail ho gaya:', error);
+                        });
+                });
+            } catch (e) {
+                console.error('Service worker registration ke liye Blob URL nahi bana paaye:', e);
+            }
+        }
+
+    </script>
+</body>
+</html>
+
